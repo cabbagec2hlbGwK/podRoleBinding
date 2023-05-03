@@ -1,0 +1,3 @@
+vscodeLauncher.cmd
+.terraform
+aws/*terraform*
