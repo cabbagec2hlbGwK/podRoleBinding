@@ -1,4 +1,4 @@
-vscodeLauncher.cmd
 .terraform
 aws/*terraform*
 *terraform*
+vscodeLaunch.cmd
