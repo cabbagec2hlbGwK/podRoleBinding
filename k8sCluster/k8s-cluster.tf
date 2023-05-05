@@ -105,4 +105,10 @@ provider "kubernetes" {
   cluster_ca_certificate = base64decode(data.aws_eks_cluster.cluster.certificate_authority.0.data)
   token                  = data.aws_eks_cluster_auth.cluster.token
 }
+resource "aws_iam_openid_connect_provider" "my_cluster_oidc_provider" {
+  client_id_list  = ["sts.amazonaws.com"]
+  thumbprint_list = [sha1(base64decode(module.eks.cluster_certificate_authority_data))]
+  url             = module.eks.cluster_oidc_issuer_url
+}
+
 
