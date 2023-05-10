@@ -8,6 +8,8 @@ terraform {
   required_version = ">= 1.0.0"
 }
 
+data "aws_caller_identity" "current" {}
+
 provider "aws" {
   region = var.region
 }
@@ -96,9 +98,12 @@ module "eks" {
   worker_additional_security_group_ids = [aws_security_group.all_worker_mgmt.id]
 
   tags = {
-    Terraform   = "true"
+    ManagedBy   = "terraform/module/eks"
     Environment = var.environment
   }
+}
+data "tls_certificate" "eks_cert" {
+  url = module.eks.cluster_oidc_issuer_url
 }
 provider "kubernetes" {
   host                   = data.aws_eks_cluster.cluster.endpoint
@@ -107,8 +112,24 @@ provider "kubernetes" {
 }
 resource "aws_iam_openid_connect_provider" "my_cluster_oidc_provider" {
   client_id_list  = ["sts.amazonaws.com"]
-  thumbprint_list = [sha1(base64decode(module.eks.cluster_certificate_authority_data))]
+  thumbprint_list = data.tls_certificate.eks_cert.certificates[*].sha1_fingerprint
   url             = module.eks.cluster_oidc_issuer_url
 }
 
+output "thumb" {
+  value = data.tls_certificate.eks_cert.certificates[*].sha1_fingerprint
+}
+locals {
+  account_id    = data.aws_caller_identity.current.account_id
+  oidc_provider = replace(module.eks.cluster_oidc_issuer_url, "https://", "")
+}
 
+resource "kubernetes_service_account" "service_account" {
+  metadata {
+    name      = var.service_account
+    namespace = var.namespace
+    annotations = {
+      "eks.amazonaws.com/role-arn" = "arn:aws:iam::${local.account_id}:role/${aws_iam_role.trust_relationship.name}"
+    }
+  }
+}

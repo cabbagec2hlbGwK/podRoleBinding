@@ -1,3 +1,11 @@
+variable "namespace" {
+  default = "default"
+  type    = string
+}
+variable "service_account" {
+  default = "aws-account"
+  type    = string
+}
 variable "region" {
   default     = "us-east-1"
   description = "aws region"
@@ -54,6 +62,6 @@ variable "map_users" {
   ]
 }
 variable "environment" {
-  default = "production"
+  default = "dev"
 
 }
