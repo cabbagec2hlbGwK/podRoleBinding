@@ -9,6 +9,7 @@ resource "aws_s3_bucket" "test" {
   bucket = "test121212812"
 }
 
+
 provider "kubernetes" {
   host                   = module.cluster.K8sHost
   cluster_ca_certificate = module.cluster.K8sCa
